@@ -22,11 +22,15 @@ credenciales en el código ni las compartas.
 
 ## Ejecución
 
-Desde la carpeta del proyecto, con el entorno virtual activado:
+Desde la carpeta raíz del proyecto (`C:\VSCode\API restaurante`), con el
+entorno virtual activado:
 
 ```powershell
-uvicorn app.main:app --reload
+python -m uvicorn app.main:app --reload
 ```
+
+No ejecutes `app\main.py` directamente: la aplicación forma parte del paquete
+`app` y necesita iniciarse desde la raíz del proyecto como módulo.
 
 La API estará disponible en `http://127.0.0.1:8000`. La documentación
 interactiva se encuentra en `http://127.0.0.1:8000/docs`.
