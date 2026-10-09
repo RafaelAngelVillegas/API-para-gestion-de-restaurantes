@@ -1,16 +1,29 @@
+from mysql.connector import MySQLConnection
+
 from app.models import Category
 
 
 class CategoryDAO:
-    def __init__(self) -> None:
-        self._categories = [
-            Category(id=1, name="Entrantes"),
-            Category(id=2, name="Principales"),
-            Category(id=3, name="Postres"),
-        ]
+    def get_all(self, connection: MySQLConnection) -> list[Category]:
+        cursor = connection.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                "SELECT id, nombre_categoria AS name "
+                "FROM categorias ORDER BY nombre_categoria"
+            )
+            return [Category.model_validate(row) for row in cursor.fetchall()]
+        finally:
+            cursor.close()
 
-    def get_all(self) -> list[Category]:
-        return self._categories.copy()
-
-    def exists(self, category_id: int) -> bool:
-        return any(category.id == category_id for category in self._categories)
+    def exists(
+        self, connection: MySQLConnection, category_id: int
+    ) -> bool:
+        cursor = connection.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                "SELECT id FROM categorias WHERE id = %s",
+                (category_id,),
+            )
+            return cursor.fetchone() is not None
+        finally:
+            cursor.close()

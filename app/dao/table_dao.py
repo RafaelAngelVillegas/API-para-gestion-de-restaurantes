@@ -1,11 +1,20 @@
+from mysql.connector import MySQLConnection
+
 from app.models import RestaurantTable
 
 
 class TableDAO:
-    def __init__(self) -> None:
-        self._tables = [
-            RestaurantTable(id=2, name="Mesa 2"),
-        ]
-
-    def get_all(self) -> list[RestaurantTable]:
-        return self._tables.copy()
+    def get_all(self, connection: MySQLConnection) -> list[RestaurantTable]:
+        cursor = connection.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                "SELECT id, nombre_mesa AS name FROM mesas "
+                "WHERE nombre_mesa = %s",
+                ("Mesa 02",),
+            )
+            return [
+                RestaurantTable.model_validate(row)
+                for row in cursor.fetchall()
+            ]
+        finally:
+            cursor.close()

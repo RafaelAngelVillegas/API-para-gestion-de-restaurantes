@@ -1,8 +1,8 @@
 # API restaurante
 
-Fase 1: exploración del dominio de pedidos de un restaurante. La API devuelve
-datos de ejemplo en memoria; todavía no consulta ni modifica la base de datos
-MySQL.
+Fase 2: recorrido de solo lectura de la carta del restaurante usando la base de
+datos MySQL existente. La única mesa visible para la aplicación es **Mesa 02**
+(ID `1093`). Esta fase no crea, corrige ni elimina datos.
 
 ## Requisitos e instalación
 
@@ -40,26 +40,33 @@ interactiva se encuentra en `http://127.0.0.1:8000/docs`.
 | Método | Ruta | Descripción |
 | --- | --- | --- |
 | GET | `/health` | Confirma que la API está activa. |
-| GET | `/categories` | Devuelve las categorías de ejemplo. |
-| GET | `/tables` | Devuelve las mesas de ejemplo. |
+| GET | `/tables` | Devuelve únicamente Mesa 02. |
+| GET | `/categories` | Devuelve las categorías de la carta. |
 | GET | `/categories/{category_id}/products` | Devuelve los productos de una categoría. |
+| GET | `/products/{product_id}/presentations` | Devuelve solo las presentaciones activas del producto. |
+| GET | `/products/{product_id}` | Devuelve los datos del producto. |
 
-Los identificadores de categoría deben ser enteros positivos. Un identificador
-con formato incorrecto devuelve HTTP 422; una categoría inexistente devuelve
-HTTP 404. Los errores de validación incluyen un mensaje en español.
+Los identificadores deben ser enteros positivos. Un identificador con formato
+incorrecto devuelve HTTP 422; una categoría o producto inexistente devuelve
+HTTP 404. Si MySQL no está disponible, la API devuelve HTTP 503. Los errores
+de validación incluyen un mensaje en español.
 
-## Datos de prueba
+## Recorrido de carta y esquema MySQL
 
-- Categorías: Entrantes (1), Principales (2), Postres (3).
-- Mesa disponible para esta fase: Mesa 2 (id 2).
-- Productos por categoría: Entrantes incluye Ensaladilla y Croquetas;
-  Principales incluye Paella; Postres incluye Flan.
+La carta se obtiene de las tablas existentes `categorias`, `carta` y
+`presentaciones`. Las columnas `unidad`, `tapa`, `media` y `racion` de `carta`
+determinan qué presentaciones se ofrecen para cada producto. Las consultas
+excluyen cualquier mesa distinta de `Mesa 02`. Los nombres de las columnas y
+tablas se adaptan al esquema real de MySQL.
+
+Para probar el recorrido, abre `/docs`, consulta las categorías, elige un
+`category_id`, después un `product_id` y consulta sus presentaciones activas.
 
 ## Estructura
 
 ```text
 app/
-  dao/              Acceso a los datos de ejemplo en memoria
+  dao/              Consultas de lectura a MySQL
   models/           Modelos de las entidades del dominio
   utils/            Configuración de entorno y conexión MySQL
   main.py           Aplicación FastAPI y rutas
@@ -69,5 +76,5 @@ requirements.txt
 ```
 
 `DatabaseConnection` prepara la apertura y el cierre de una conexión MySQL
-usando variables de entorno. En esta fase no se invoca desde las rutas: los
-endpoints utilizan los DAO con datos de ejemplo.
+usando variables de entorno. Los DAO ejecutan consultas de lectura y los
+modelos Pydantic validan las respuestas de la API.
